@@ -1,0 +1,25 @@
+<h2>Tasks</h2>
+<div>
+  <h3>Add Task</h3>
+  <input type="text"
+         [(ngModel)]="description"
+         name="name"
+  >
+  <button (click)="addTask()"
+          [disabled]="!description"
+  >Add
+  </button>
+</div>
+<div>
+  <h3>All Tasks</h3>
+  <p>Tasks updates: {{updateCnt}}</p>
+  <table>
+    <tr *ngFor="let task of tasks$ | async">
+      <td>{{task.description}}</td>
+      <td *ngIf="!task.finished"><button (click)="finishTask(task._id)">finish</button></td>
+      <td *ngIf="task.finished">finished</td>
+      <td><button (click)="removeTask(task._id)">remove</button></td>
+    </tr>
+  </table>
+</div>
+
