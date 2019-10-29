@@ -24,7 +24,6 @@ In the root folder you do
 - build the client side Meteor Bundle with ```npm run bundle-meteor-client:local```.
 - start angular with the command ```npm run start``` or ```ng serve```
 - the application will be running at http://localhost:4200/
-- you can login as admin user with meteoradmin / asdf1234
 
 ### Main dependencies are
 - Meteor (version 1.8.1)
