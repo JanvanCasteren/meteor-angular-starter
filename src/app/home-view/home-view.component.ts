@@ -1,11 +1,8 @@
 import {Component, OnInit} from '@angular/core';
-import {Tasks, Task} from '../../../api/imports/collections/tasks';
-import {MeteorObservable} from 'meteor-rxjs';
-import {MethodObservable} from '../../../api/imports/other/method-observable';
-import {Observable, timer} from 'rxjs';
-import {finishTask, removeTask} from '../../../api/imports/methods/task-methods';
-import {debounce} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
+import {TasksService} from '../tasks.service';
 
+// this component is completely unaware of Meteor
 @Component({
   selector: 'app-home-view',
   templateUrl: './home-view.component.html',
@@ -13,27 +10,28 @@ import {debounce} from 'rxjs/operators';
 })
 export class HomeViewComponent implements OnInit {
 
-  // we use debounce to lower the amounts of emits
-  tasks$: Observable<Task[]> = Tasks.find({}).pipe(debounce(() => timer(10)));
-  // to see the difference, simply compare with:
-  // tasks$: Observable<Task[]> = Tasks.find({});
+  taskDescriptions$;
   description = '';
   updateCnt = 0;
 
-  constructor() {
-    MeteorObservable.subscribe('tasks').subscribe();
-    this.tasks$.subscribe((tasks) => {
-      console.log('task count: ', tasks.length);
-    	this.updateCnt++;
-    });
+  constructor(
+    private tasksService: TasksService
+  ) {
+    // since our collection is an rxjs observable, we can apply
+    // any rxjs operator on it
+    this.taskDescriptions$ = this.tasksService.tasks$
+      .pipe(map(tasks => tasks.map(task => task.description).sort()));
+    // and subscribe to it
+    this.tasksService.tasks$.subscribe(() => {
+        this.updateCnt++;
+      });
   }
 
   ngOnInit() {
   }
 
   addTask() {
-    MeteorObservable.call('tasks.add', {description: this.description})
-      .subscribe(() => {
+    this.tasksService.addTask(this.description).subscribe(() => {
         this.description = '';
       }, (error) => {
         console.log(error);
@@ -41,16 +39,14 @@ export class HomeViewComponent implements OnInit {
   }
 
   finishTask(id) {
-    return MethodObservable(finishTask, {id})
-      .subscribe(() => {
+    this.tasksService.finishTask(id).subscribe(() => {
       }, (error) => {
         console.log(error);
       });
   }
 
   removeTask(id) {
-    return MethodObservable(removeTask, {id})
-      .subscribe(() => {
+    this.tasksService.removeTask(id).subscribe(() => {
       }, (error) => {
         console.log(error);
       });
